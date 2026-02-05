@@ -3,7 +3,7 @@ import { createProduct, updateProduct, disableProduct, getAllProducts } from '..
 import { ProductForm } from './ProductForm';
 import './ProductManager.css';
 
-export const ProductManager = () => {
+export const ProductManager = ({ initialEditId = null, openForm = false }) => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -16,6 +16,25 @@ export const ProductManager = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // If openForm is requested (e.g., /products/create), show the form for creating
+  useEffect(() => {
+    if (openForm) {
+      setEditingProduct(null);
+      setShowForm(true);
+    }
+  }, [openForm]);
+
+  // If an initial edit id is provided, open the form with that product once loaded
+  useEffect(() => {
+    if (initialEditId && products.length > 0) {
+      const prod = products.find((p) => p._id === initialEditId);
+      if (prod) {
+        setEditingProduct(prod);
+        setShowForm(true);
+      }
+    }
+  }, [initialEditId, products]);
 
   const fetchProducts = async () => {
     setListLoading(true);
@@ -140,9 +159,9 @@ export const ProductManager = () => {
                 <tbody>
                   {products.map(product => (
                     <tr key={product._id} className={!product.isActive ? 'disabled' : ''}>
-                      <td className="url-cell">{product.url}</td>
-                      <td>{product.category}</td>
-                      <td className="heading-cell">{product.heading2}</td>
+                      <td className="url-cell">{product.slug}</td>
+                      <td>{product.product?.category}</td>
+                      <td className="heading-cell">{product.product?.name}</td>
                       <td>
                         <span className={`status-badge ${product.isActive ? 'active' : 'inactive'}`}>
                           {product.isActive ? 'Active' : 'Disabled'}

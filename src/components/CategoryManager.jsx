@@ -1,20 +1,25 @@
-import { useState, useEffect } from 'react';
-import { getAllCategoriesAdmin, createCategory, updateCategory, disableCategory } from '../services/api';
-import './CategoryManager.css';
+import { useState, useEffect } from "react";
+import {
+  getAllCategoriesAdmin,
+  createCategory,
+  updateCategory,
+  disableCategory,
+} from "../services/api";
+import "./CategoryManager.css";
 
-export const CategoryManager = () => {
+export const CategoryManager = ({ initialEditId = null, openForm = false }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
 
   const [formData, setFormData] = useState({
-    url: '',
-    countryLang: 'en-US',
-    title: ''
+    url: "",
+    countryLang: "default",
+    title: "",
   });
 
   // Fetch all categories on component mount
@@ -22,9 +27,32 @@ export const CategoryManager = () => {
     fetchCategories();
   }, []);
 
+  // Open form if requested via props (e.g., /categories/create)
+  useEffect(() => {
+    if (openForm) {
+      setShowForm(true);
+    }
+  }, [openForm]);
+
+  // If an initial edit id is provided, set the editingCategory once categories are loaded
+  useEffect(() => {
+    if (initialEditId && categories.length > 0) {
+      const cat = categories.find((c) => c._id === initialEditId);
+      if (cat) {
+        setEditingCategory(cat);
+        setFormData({
+          url: cat.url,
+          countryLang: cat.countryLang,
+          title: cat.title,
+        });
+        setShowForm(true);
+      }
+    }
+  }, [initialEditId, categories]);
+
   const fetchCategories = async () => {
     setListLoading(true);
-    setError('');
+    setError("");
 
     try {
       const response = await getAllCategoriesAdmin();
@@ -34,7 +62,7 @@ export const CategoryManager = () => {
         setCategories(response.data);
       }
     } catch (err) {
-      setError(err.message || 'Failed to fetch categories.');
+      setError(err.message || "Failed to fetch categories.");
     } finally {
       setListLoading(false);
     }
@@ -42,17 +70,17 @@ export const CategoryManager = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const resetForm = () => {
     setFormData({
-      url: '',
-      countryLang: 'en-US',
-      title: ''
+      url: "",
+      countryLang: "default",
+      title: "",
     });
     setEditingCategory(null);
   };
@@ -62,7 +90,7 @@ export const CategoryManager = () => {
     setFormData({
       url: category.url,
       countryLang: category.countryLang,
-      title: category.title
+      title: category.title,
     });
     setShowForm(true);
   };
@@ -70,37 +98,37 @@ export const CategoryManager = () => {
   const handleCancel = () => {
     setShowForm(false);
     resetForm();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
       if (editingCategory) {
         // Update category
         await updateCategory(editingCategory._id, {
-          title: formData.title
+          title: formData.title,
         });
-        setSuccess('Category updated successfully!');
+        setSuccess("Category updated successfully!");
       } else {
         // Create new category
         await createCategory(formData);
-        setSuccess('Category created successfully!');
+        setSuccess("Category created successfully!");
       }
 
       // Refresh category list
       await fetchCategories();
-      
+
       // Reset form
       resetForm();
       setShowForm(false);
     } catch (err) {
-      setError(err.message || 'Operation failed. Please try again.');
+      setError(err.message || "Operation failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -108,23 +136,23 @@ export const CategoryManager = () => {
 
   const handleToggleStatus = async (category) => {
     if (category.isActive) {
-      if (!window.confirm('Are you sure you want to disable this category?')) {
+      if (!window.confirm("Are you sure you want to disable this category?")) {
         return;
       }
     }
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
       await disableCategory(category._id);
-      setSuccess('Category disabled successfully!');
-      
+      setSuccess("Category disabled successfully!");
+
       // Refresh category list
       await fetchCategories();
     } catch (err) {
-      setError(err.message || 'Failed to update category status.');
+      setError(err.message || "Failed to update category status.");
     } finally {
       setLoading(false);
     }
@@ -135,10 +163,7 @@ export const CategoryManager = () => {
       <div className="manager-header">
         <h2>Category Management</h2>
         {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="add-button"
-          >
+          <button onClick={() => setShowForm(true)} className="add-button">
             + Add New Category
           </button>
         )}
@@ -150,7 +175,7 @@ export const CategoryManager = () => {
       {showForm && (
         <form onSubmit={handleSubmit} className="category-form">
           <div className="form-header">
-            <h3>{editingCategory ? 'Edit Category' : 'Create New Category'}</h3>
+            <h3>{editingCategory ? "Edit Category" : "Create New Category"}</h3>
           </div>
 
           <div className="form-grid">
@@ -178,10 +203,10 @@ export const CategoryManager = () => {
                 required
                 disabled={editingCategory || loading}
               >
-                <option value="en-US">English (US)</option>
-                <option value="en-CA">English (Canada)</option>
-                <option value="en-GB">English (UK)</option>
-                <option value="fr-CA">French (Canada)</option>
+                <option value="default">Main</option>
+                <option value="en-ae">English (UAE)</option>
+                <option value="en-us">English (US)</option>
+                <option value="en-my">English (Malaysia)</option>
               </select>
             </div>
 
@@ -200,12 +225,12 @@ export const CategoryManager = () => {
           </div>
 
           <div className="form-actions">
-            <button
-              type="submit"
-              disabled={loading}
-              className="submit-button"
-            >
-              {loading ? 'Saving...' : (editingCategory ? 'Update Category' : 'Create Category')}
+            <button type="submit" disabled={loading} className="submit-button">
+              {loading
+                ? "Saving..."
+                : editingCategory
+                  ? "Update Category"
+                  : "Create Category"}
             </button>
             <button
               type="button"
@@ -220,67 +245,82 @@ export const CategoryManager = () => {
       )}
 
       <div className="categories-section">
-        <h3>All Categories</h3>
-        
+        <h3>All Categories ({categories.length})</h3>
+
         {listLoading ? (
           <div className="loading">Loading categories...</div>
         ) : categories.length === 0 ? (
           <div className="empty-state">
-            <p>No categories found. Create your first category to get started.</p>
+            <p>
+              No categories found. Create your first category to get started.
+            </p>
           </div>
         ) : (
-          <div className="categories-table-wrapper">
-            <table className="categories-table">
-              <thead>
-                <tr>
-                  <th>URL</th>
-                  <th>Country/Language</th>
-                  <th>Title</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map(category => (
-                  <tr key={category._id} className={!category.isActive ? 'disabled' : ''}>
-                    <td className="url-cell">{category.url}</td>
-                    <td>{category.countryLang}</td>
-                    <td>{category.title}</td>
-                    <td>
-                      <span className={`status-badge ${category.isActive ? 'active' : 'inactive'}`}>
-                        {category.isActive ? 'Active' : 'Disabled'}
-                      </span>
-                    </td>
-                    <td>{new Date(category.createdAt).toLocaleDateString()}</td>
-                    <td className="actions-cell">
-                      <button
-                        onClick={() => handleEdit(category)}
-                        className="action-button edit-btn"
-                        title="Edit category"
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(category)}
-                        disabled={loading}
-                        className={`action-button ${category.isActive ? 'disable-btn' : 'enable-btn'}`}
-                        title={category.isActive ? 'Disable category' : 'Enable category'}
-                      >
-                        {category.isActive ? '🚫 Disable' : '✓ Enable'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="categories-grid">
+            {categories.map((category) => (
+              <div
+                key={category._id}
+                className={`category-card ${!category.isActive ? "disabled" : ""}`}
+              >
+                <div className="card-header">
+                  <div className="card-title-section">
+                    <h4 className="category-title">{category.title}</h4>
+                    <p className="category-url">{category.url}</p>
+                  </div>
+                  <span
+                    className={`status-badge ${category.isActive ? "active" : "inactive"}`}
+                  >
+                    {category.isActive ? "Active" : "Disabled"}
+                  </span>
+                </div>
+
+                <div className="card-body">
+                  <div className="category-info-row">
+                    <span className="info-label">Region:</span>
+                    <span className="info-value">{category.countryLang}</span>
+                  </div>
+                  <div className="category-info-row">
+                    <span className="info-label">Created:</span>
+                    <span className="info-value">
+                      {new Date(category.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="card-actions">
+                  <button
+                    onClick={() => handleEdit(category)}
+                    className="action-button edit-btn"
+                    title="Edit category"
+                    disabled={loading}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => handleToggleStatus(category)}
+                    disabled={loading}
+                    className={`action-button ${category.isActive ? "disable-btn" : "enable-btn"}`}
+                    title={
+                      category.isActive
+                        ? "Disable category"
+                        : "Enable category"
+                    }
+                  >
+                    {category.isActive ? "🚫 Disable" : "✓ Enable"}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
       {!showForm && categories.length > 0 && (
         <div className="info-box">
-          <p>💡 Click "Edit" to modify category details or "Disable" to remove from selection.</p>
+          <p>
+            💡 Click "Edit" to modify category details or "Disable" to remove
+            from selection.
+          </p>
         </div>
       )}
     </div>
