@@ -565,7 +565,7 @@ export const ProductForm = ({ onSuccess, onCancel, editingProduct = null }) => {
                     >
                       <option value="">-- Select a Category --</option>
                       {categories.map((cat) => (
-                        <option key={cat._id} value={cat._id}>
+                        <option key={cat._id} value={cat.url}>
                           {cat.title} ({cat.countryLang})
                         </option>
                       ))}
