@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createProduct, updateProduct, disableProduct, getAllProducts } from '../services/api';
+import { createProduct, updateProduct, disableProduct, getAllProducts, enableProduct } from '../services/api';
 import { ProductForm } from './ProductForm';
 import './ProductManager.css';
 
@@ -71,6 +71,12 @@ export const ProductManager = ({ initialEditId = null, openForm = false }) => {
       }
     }
 
+    if (!product.isActive) {
+      if (!window.confirm('Are you sure you want to enable this product?')) {
+        return;
+      }
+    }
+
     setError('');
     setSuccess('');
     setLoading(true);
@@ -82,10 +88,10 @@ export const ProductManager = ({ initialEditId = null, openForm = false }) => {
         setSuccess('Product disabled successfully!');
       } else {
         // Enable product - you'll need to implement an enable endpoint on the backend
-        setError('Enable functionality requires backend update');
-        setLoading(false);
-        return;
+        await enableProduct(product._id);
+        setSuccess('Product enabled successfully!');
       }
+      setLoading(false);
       
       // Refresh product list
       await fetchProducts();

@@ -73,6 +73,12 @@ export const getProduct = (url) => {
   });
 };
 
+export const enableProduct = (productId) => {
+  return apiCall(`/products/${productId}/enable`, {
+    method: 'PATCH',
+  });
+}
+
 export const disableProduct = (productId) => {
   return apiCall(`/products/${productId}/disable`, {
     method: 'PATCH',
